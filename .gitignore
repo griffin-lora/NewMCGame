@@ -2,3 +2,4 @@ build/
 resources/cmods/*.so
 resources/saves
 imgui.ini
+.vscode
