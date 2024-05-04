@@ -55,6 +55,13 @@ void Chunk::buildMesh(World& world, glm::vec3 chunkCoords) {
     std::vector<glm::vec3> vertices;
     std::vector<GLint> layers;
 
+    Chunk* northChunk = chunkCoords.x + 1 >= world.chunkSizeX() ? nullptr : &world.getChunkRef(chunkCoords + glm::vec3(1, 0, 0));
+    Chunk* southChunk = chunkCoords.x - 1 < 0 ? nullptr : &world.getChunkRef(chunkCoords + glm::vec3(-1, 0, 0));
+    Chunk* eastChunk = chunkCoords.z + 1 >= world.chunkSizeZ() ? nullptr : &world.getChunkRef(chunkCoords + glm::vec3(0, 0, 1));
+    Chunk* westChunk = chunkCoords.z - 1 < 0 ? nullptr : &world.getChunkRef(chunkCoords + glm::vec3(0, 0, -1));
+    Chunk* topChunk = chunkCoords.y + 1 >= world.chunkSizeY() ? nullptr : &world.getChunkRef(chunkCoords + glm::vec3(0, 1, 0));
+    Chunk* bottomChunk = chunkCoords.y - 1 < 0 ? nullptr : &world.getChunkRef(chunkCoords + glm::vec3(0, -1, 0));
+
     // Chunk generation code
     for (int y=0; y<16; y++) {
         for (int z=0; z<16; z++) {
@@ -93,8 +100,7 @@ void Chunk::buildMesh(World& world, glm::vec3 chunkCoords) {
                     glm::vec3(x + 1, y, z), glm::vec3(x + 1, y + 1, z + 1), glm::vec3(x + 1, y, z + 1),
                 };
                 if (x >= 15) {
-                    if (chunkCoords.x + 1 >= world.chunkSizeX()
-                    || world.getChunkRef(chunkCoords + vec3(1, 0, 0)).getBlock(vec3(0.f, cPos.y, cPos.z)).getBlockId() == 0)
+                    if (!northChunk || northChunk->getBlock(vec3(0.f, cPos.y, cPos.z)).getBlockId() == 0)
                         addFace(xPos, Block::BlockFace::NORTH);
                 } else if (getBlockReference(cPos + vec3(1, 0, 0)).getBlockId() == 0)
                     addFace(xPos, Block::BlockFace::NORTH);
@@ -105,8 +111,7 @@ void Chunk::buildMesh(World& world, glm::vec3 chunkCoords) {
                     glm::vec3(x, y, z + 1), glm::vec3(x, y + 1, z),     glm::vec3(x, y, z),
                 };
                 if (x < 1) {
-                    if (chunkCoords.x - 1 < 0
-                    || world.getChunkRef(chunkCoords + vec3(-1, 0, 0)).getBlock(vec3(15.f, cPos.y, cPos.z)).getBlockId() == 0)
+                    if (!southChunk || southChunk->getBlock(vec3(15.f, cPos.y, cPos.z)).getBlockId() == 0)
                         addFace(xNeg, Block::BlockFace::SOUTH);
                 } else if (getBlockReference(cPos + vec3(-1, 0, 0)).getBlockId() == 0)
                     addFace(xNeg, Block::BlockFace::SOUTH);
@@ -117,8 +122,7 @@ void Chunk::buildMesh(World& world, glm::vec3 chunkCoords) {
                     glm::vec3(x + 1, y, z + 1), glm::vec3(x, y + 1, z + 1),     glm::vec3(x, y, z + 1),
                 };
                 if (z >= 15) {
-                    if (chunkCoords.z + 1 >= world.chunkSizeZ()
-                    || world.getChunkRef(chunkCoords + vec3(0, 0, 1)).getBlock(vec3(cPos.x, cPos.y, 0)).getBlockId() == 0)
+                    if (!eastChunk || eastChunk->getBlock(vec3(cPos.x, cPos.y, 0)).getBlockId() == 0)
                         addFace(zPos, Block::BlockFace::EAST);
                 } else if (getBlockReference(cPos + vec3(0, 0, 1)).getBlockId() == 0)
                     addFace(zPos, Block::BlockFace::EAST);
@@ -129,8 +133,7 @@ void Chunk::buildMesh(World& world, glm::vec3 chunkCoords) {
                     glm::vec3(x, y, z), glm::vec3(x + 1, y + 1, z), glm::vec3(x + 1, y, z),
                 };
                 if (z < 1) {
-                    if (chunkCoords.z - 1 < 0
-                    || world.getChunkRef(chunkCoords + vec3(0, 0, -1)).getBlock(vec3(cPos.x, cPos.y, 15)).getBlockId() == 0)
+                    if (!westChunk || westChunk->getBlock(vec3(cPos.x, cPos.y, 15)).getBlockId() == 0)
                         addFace(zNeg, Block::BlockFace::WEST);
                 } else if (getBlockReference(cPos + vec3(0, 0, -1)).getBlockId() == 0)
                     addFace(zNeg, Block::BlockFace::WEST);
@@ -141,8 +144,7 @@ void Chunk::buildMesh(World& world, glm::vec3 chunkCoords) {
                     glm::vec3(x, y + 1, z), glm::vec3(x + 1, y + 1, z + 1), glm::vec3(x + 1, y + 1, z),
                 };
                 if (y >= 15) {
-                    if (chunkCoords.y + 1 >= world.chunkSizeY()
-                    || world.getChunkRef(chunkCoords + vec3(0, 1, 0)).getBlock(vec3(cPos.x, 0, cPos.z)).getBlockId() == 0)
+                    if (!topChunk || topChunk->getBlock(vec3(cPos.x, 0, cPos.z)).getBlockId() == 0)
                         addFace(yPos, Block::BlockFace::TOP);
                 } else if (getBlockReference(cPos + vec3(0, 1, 0)).getBlockId() == 0)
                     addFace(yPos, Block::BlockFace::TOP);
@@ -153,8 +155,7 @@ void Chunk::buildMesh(World& world, glm::vec3 chunkCoords) {
                     glm::vec3(x, y, z), glm::vec3(x + 1, y, z + 1), glm::vec3(x, y, z + 1),
                 };
                 if (y < 1) {
-                    if (chunkCoords.y - 1 < 0
-                    || world.getChunkRef(chunkCoords + vec3(0, -1, 0)).getBlock(vec3(cPos.x, 15, cPos.z)).getBlockId() == 0)
+                    if (!bottomChunk || bottomChunk->getBlock(vec3(cPos.x, 15, cPos.z)).getBlockId() == 0)
                         addFace(yNeg, Block::BlockFace::BOTTOM);
                 } else if (getBlockReference(cPos + vec3(0, -1, 0)).getBlockId() == 0)
                     addFace(yNeg, Block::BlockFace::BOTTOM);
