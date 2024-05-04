@@ -1,8 +1,11 @@
 #include "chunk.hpp"
 
+#include <ratio>
 #include <string.h>
 #include "../world.hpp"
 #include <stdexcept>
+#include <chrono>
+#include <string>
 
 Block& Chunk::getBlockReference(glm::vec3 localPos) {
     int i = (int)localPos.x + (int)localPos.z * 16 + (int)localPos.y * 16 * 16;
@@ -39,7 +42,14 @@ void Chunk::setBlock(glm::vec3 pos, Block block) {
     meshUpdatedNeeded = true;
 }
 
+static Logger logger("Chunk Mesh Builder", Logger::FGColors::BLUE);
+static size_t numMeshesBuilt = 0;
+static double totalMicroseconds = 0.0;
+
 void Chunk::buildMesh(World& world, glm::vec3 chunkCoords) {
+
+    auto clockStart = std::chrono::high_resolution_clock::now();
+
     meshUpdatedNeeded = false;
 
     std::vector<glm::vec3> vertices;
@@ -151,6 +161,17 @@ void Chunk::buildMesh(World& world, glm::vec3 chunkCoords) {
             }
         }
     }
+
+    numMeshesBuilt++;
+
+    auto clockEnd = std::chrono::high_resolution_clock::now();
+    double microseconds = std::chrono::duration<double, std::micro>(clockEnd - clockStart).count();
+    totalMicroseconds += microseconds;
+
+    double avgMicroseconds = totalMicroseconds / ((double) numMeshesBuilt);
+
+    logger.info("Chunk { " + std::to_string(chunkCoords.x) + ", " + std::to_string(chunkCoords.y) + ", " + std::to_string(chunkCoords.z) + " } mesh built in " + std::to_string(microseconds) + "μs");
+    logger.info("Average mesh build time: " + std::to_string(avgMicroseconds) + "μs");
     
     mesh.bufferChunkData(vertices, layers);
 }
