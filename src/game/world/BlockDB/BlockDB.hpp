@@ -68,8 +68,8 @@ public:
      * Get the BlockMeshInfo struct for a block of a certain index
      * @param index Block index to look up
     */
-    inline const BlockMeshInfo& getBlockMeshInfo(Block::BlockIndex index) {
-        return blockMeshInfos.at(index.value);
+    inline const BlockMeshInfo& getBlockMeshInfo(Block::BlockIndex index) const {
+        return blockMeshInfos[index.value];
     }
 
     /**

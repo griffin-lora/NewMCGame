@@ -12,7 +12,7 @@ void HUDTextItem::drawMesh() {
     const float textWidth = charDim * text.size();
 
     for (int i=0; i < text.size(); i++) {
-        unsigned char letter = text.at(i);
+        unsigned char letter = text[i];
 
         float xPosition = i * charDim;
 

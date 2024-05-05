@@ -9,6 +9,11 @@
 
 Block::BlockIndex& Chunk::getBlockIndex(glm::vec3 localPos) {
     int i = (int)localPos.x + (int)localPos.z * 16 + (int)localPos.y * 16 * 16;
+    return blockIndices[i];
+}
+
+Block::BlockIndex& Chunk::getBlockIndexAt(glm::vec3 localPos) {
+    int i = (int)localPos.x + (int)localPos.z * 16 + (int)localPos.y * 16 * 16;
     return blockIndices.at(i);
 }
 
@@ -34,11 +39,11 @@ bool Chunk::pendingMeshUpdate() const {
 }
 
 Block Chunk::getBlock(glm::vec3 pos) {
-    return Block(getBlockIndex(pos));
+    return Block(getBlockIndexAt(pos));
 }
 
 void Chunk::setBlock(glm::vec3 pos, Block block) {
-    getBlockIndex(pos) = block.getIndex();
+    getBlockIndexAt(pos) = block.getIndex();
     meshUpdatedNeeded = true;
 }
 
@@ -62,6 +67,8 @@ void Chunk::buildMesh(World& world, glm::vec3 chunkCoords) {
     Chunk* topChunk = chunkCoords.y + 1 >= world.chunkSizeY() ? nullptr : &world.getChunkRef(chunkCoords + glm::vec3(0, 1, 0));
     Chunk* bottomChunk = chunkCoords.y - 1 < 0 ? nullptr : &world.getChunkRef(chunkCoords + glm::vec3(0, -1, 0));
 
+    auto& blockDB = world.getBlockDBRef();
+
     // Chunk generation code
     for (int y=0; y<16; y++) {
         for (int z=0; z<16; z++) {
@@ -71,9 +78,9 @@ void Chunk::buildMesh(World& world, glm::vec3 chunkCoords) {
                 // Get the block by using its chunk coordinates
                 auto blockIndex = getBlockIndex(cPos);
 
-                if (world.getBlockDBRef().isAir(blockIndex)) continue;
+                if (blockDB.isAir(blockIndex)) continue;
 
-                const BlockDB::BlockMeshInfo& meshInfo = world.getBlockDBRef().getBlockMeshInfo(blockIndex);
+                const BlockDB::BlockMeshInfo& meshInfo = blockDB.getBlockMeshInfo(blockIndex);
 
                 using namespace glm;
 
@@ -99,9 +106,9 @@ void Chunk::buildMesh(World& world, glm::vec3 chunkCoords) {
                     glm::vec3(x + 1, y, z), glm::vec3(x + 1, y + 1, z + 1), glm::vec3(x + 1, y, z + 1),
                 };
                 if (x >= 15) {
-                    if (!northChunk || world.getBlockDBRef().isAir(northChunk->getBlockIndex(vec3(0.f, cPos.y, cPos.z))))
+                    if (!northChunk || blockDB.isAir(northChunk->getBlockIndex(vec3(0.f, cPos.y, cPos.z))))
                         addFace(xPos, Block::BlockFace::NORTH);
-                } else if (world.getBlockDBRef().isAir(getBlockIndex(cPos + vec3(1, 0, 0))))
+                } else if (blockDB.isAir(getBlockIndex(cPos + vec3(1, 0, 0))))
                     addFace(xPos, Block::BlockFace::NORTH);
 
                 // -X Face Check
@@ -110,9 +117,9 @@ void Chunk::buildMesh(World& world, glm::vec3 chunkCoords) {
                     glm::vec3(x, y, z + 1), glm::vec3(x, y + 1, z),     glm::vec3(x, y, z),
                 };
                 if (x < 1) {
-                    if (!southChunk || world.getBlockDBRef().isAir(southChunk->getBlockIndex(vec3(15.f, cPos.y, cPos.z))))
+                    if (!southChunk || blockDB.isAir(southChunk->getBlockIndex(vec3(15.f, cPos.y, cPos.z))))
                         addFace(xNeg, Block::BlockFace::SOUTH);
-                } else if (world.getBlockDBRef().isAir(getBlockIndex(cPos + vec3(-1, 0, 0))))
+                } else if (blockDB.isAir(getBlockIndex(cPos + vec3(-1, 0, 0))))
                     addFace(xNeg, Block::BlockFace::SOUTH);
 
                 // +Z Face Check
@@ -121,9 +128,9 @@ void Chunk::buildMesh(World& world, glm::vec3 chunkCoords) {
                     glm::vec3(x + 1, y, z + 1), glm::vec3(x, y + 1, z + 1),     glm::vec3(x, y, z + 1),
                 };
                 if (z >= 15) {
-                    if (!eastChunk || world.getBlockDBRef().isAir(eastChunk->getBlockIndex(vec3(cPos.x, cPos.y, 0))))
+                    if (!eastChunk || blockDB.isAir(eastChunk->getBlockIndex(vec3(cPos.x, cPos.y, 0))))
                         addFace(zPos, Block::BlockFace::EAST);
-                } else if (world.getBlockDBRef().isAir(getBlockIndex(cPos + vec3(0, 0, 1))))
+                } else if (blockDB.isAir(getBlockIndex(cPos + vec3(0, 0, 1))))
                     addFace(zPos, Block::BlockFace::EAST);
 
                 // -Z Face Check
@@ -132,9 +139,9 @@ void Chunk::buildMesh(World& world, glm::vec3 chunkCoords) {
                     glm::vec3(x, y, z), glm::vec3(x + 1, y + 1, z), glm::vec3(x + 1, y, z),
                 };
                 if (z < 1) {
-                    if (!westChunk || world.getBlockDBRef().isAir(westChunk->getBlockIndex(vec3(cPos.x, cPos.y, 15))))
+                    if (!westChunk || blockDB.isAir(westChunk->getBlockIndex(vec3(cPos.x, cPos.y, 15))))
                         addFace(zNeg, Block::BlockFace::WEST);
-                } else if (world.getBlockDBRef().isAir(getBlockIndex(cPos + vec3(0, 0, -1))))
+                } else if (blockDB.isAir(getBlockIndex(cPos + vec3(0, 0, -1))))
                     addFace(zNeg, Block::BlockFace::WEST);
 
                 // +Y Face Check
@@ -143,9 +150,9 @@ void Chunk::buildMesh(World& world, glm::vec3 chunkCoords) {
                     glm::vec3(x, y + 1, z), glm::vec3(x + 1, y + 1, z + 1), glm::vec3(x + 1, y + 1, z),
                 };
                 if (y >= 15) {
-                    if (!topChunk || world.getBlockDBRef().isAir(topChunk->getBlockIndex(vec3(cPos.x, 0, cPos.z))))
+                    if (!topChunk || blockDB.isAir(topChunk->getBlockIndex(vec3(cPos.x, 0, cPos.z))))
                         addFace(yPos, Block::BlockFace::TOP);
-                } else if (world.getBlockDBRef().isAir(getBlockIndex(cPos + vec3(0, 1, 0))))
+                } else if (blockDB.isAir(getBlockIndex(cPos + vec3(0, 1, 0))))
                     addFace(yPos, Block::BlockFace::TOP);
 
                 // -Y Face Check
@@ -154,9 +161,9 @@ void Chunk::buildMesh(World& world, glm::vec3 chunkCoords) {
                     glm::vec3(x, y, z), glm::vec3(x + 1, y, z + 1), glm::vec3(x, y, z + 1),
                 };
                 if (y < 1) {
-                    if (!bottomChunk || world.getBlockDBRef().isAir(bottomChunk->getBlockIndex(vec3(cPos.x, 15, cPos.z))))
+                    if (!bottomChunk || blockDB.isAir(bottomChunk->getBlockIndex(vec3(cPos.x, 15, cPos.z))))
                         addFace(yNeg, Block::BlockFace::BOTTOM);
-                } else if (world.getBlockDBRef().isAir(getBlockIndex(cPos + vec3(0, -1, 0))))
+                } else if (blockDB.isAir(getBlockIndex(cPos + vec3(0, -1, 0))))
                     addFace(yNeg, Block::BlockFace::BOTTOM);
             }
         }

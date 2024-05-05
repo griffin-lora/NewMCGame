@@ -19,6 +19,7 @@ private:
     bool meshUpdatedNeeded = true;
 
     Block::BlockIndex& getBlockIndex(glm::vec3 pos);
+    Block::BlockIndex& getBlockIndexAt(glm::vec3 pos);
 public:
     Chunk();
     Chunk(Chunk&&);

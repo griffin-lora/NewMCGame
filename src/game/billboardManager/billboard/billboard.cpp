@@ -39,7 +39,7 @@ void Billboard::draw() {
     const float charOffset = billboardWidth / 2.f;
 
     for (int i=0; i < text.size(); i++) {
-        unsigned char letter = text.at(i);
+        unsigned char letter = text[i];
 
         float xPosition = i * charDim - charOffset;
 
