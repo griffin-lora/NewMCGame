@@ -65,10 +65,50 @@ vec3[] cubePositions = vec3[NUM_CUBE_BLOCK_VERTICES](
     vec3(0.000000, 0.000000, -1.000000)
 );
 
-// Keep in mind theese are for a texture that is upside down because stbi is wierd
-vec2[] cubeTexCoords = vec2[6](
-    vec2(0, 1), vec2(0, 0), vec2(1, 0),
-    vec2(0, 1), vec2(1, 0), vec2(1, 1)
+// Texcoord pain
+vec2[] cubeTexCoords = vec2[NUM_CUBE_BLOCK_VERTICES](
+    // North +X
+    vec2(1.000000, 0.000000),
+    vec2(1.000000, 1.000000),
+    vec2(-0.000000, 1.000000),
+    vec2(1.000000, 0.000000),
+    vec2(-0.000000, 1.000000),
+    vec2(0.000000, 0.000000),
+    // South -X
+    vec2(-0.000000, 1.000000),
+    vec2(0.000000, 0.000000),
+    vec2(1.000000, 0.000000),
+    vec2(-0.000000, 1.000000),
+    vec2(1.000000, 0.000000),
+    vec2(1.000000, 1.000000),
+    // Top +Y
+    vec2(0.000000, 0.000000),
+    vec2(1.000000, 0.000000),
+    vec2(1.000000, 1.000000),
+    vec2(0.000000, 0.000000),
+    vec2(1.000000, 1.000000),
+    vec2(0.000000, 1.000000),
+    // Bottom -Y
+    vec2(0.000000, 0.000000),
+    vec2(1.000000, 0.000000),
+    vec2(1.000000, 1.000000),
+    vec2(0.000000, 0.000000),
+    vec2(1.000000, 1.000000),
+    vec2(0.000000, 1.000000),
+    // East +Z
+    vec2(1.000000, 1.000000),
+    vec2(0.000000, 1.000000),
+    vec2(0.000000, 0.000000),
+    vec2(1.000000, 1.000000),
+    vec2(0.000000, 0.000000),
+    vec2(1.000000, 0.000000),
+    // West -Z
+    vec2(0.000000, 0.000000),
+    vec2(1.000000, 0.000000),
+    vec2(1.000000, 1.000000),
+    vec2(0.000000, 0.000000),
+    vec2(1.000000, 1.000000),
+    vec2(0.000000, 1.000000)
 );
 
 void main() {
@@ -85,6 +125,5 @@ void main() {
     vec3 blockPosition = vec3(x, y, z);
 
 	gl_Position = viewProjection * vec4(blockPosition + vertexPosition + (chunkCoord * 16), 1.0);
-
-	fragTexCoord = vec3(cubeTexCoords[gl_VertexID % int(NUM_CUBE_BLOCK_FACE_VERTICES)], layer);
+	fragTexCoord = vec3(cubeTexCoords[cubeVertexIndex], layer);
 }
