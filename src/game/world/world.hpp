@@ -23,9 +23,9 @@ private:
 
     // Actual world container
     std::map<ChunkPos, Chunk> chunks;
-    int sizeX;
-    int sizeY;
-    int sizeZ;
+    int sizeX = 0;
+    int sizeY = 0;
+    int sizeZ = 0;
 
     // OpenGL stuff
     bool gfxReady = false;
