@@ -22,7 +22,7 @@ void Player::updatePlayer(Game& game, float deltaTime) {
     static double pitch = 2.8f;
     static double yaw = 0;
     static double mx, my = 0.f;
-    const static auto dirtId = game.getWorldRef().getBlockDBRef().getIdentByName("dirt");
+    const static auto dirtIndex = game.getWorldRef().getBlockDBRef().getIndexByName("dirt");
 
     // Half screen width and heigh
     const int hwidth = game.getWindowWidth() / 2;
@@ -120,7 +120,7 @@ void Player::updatePlayer(Game& game, float deltaTime) {
             
             // Cast a ray and try to break the block we are looking at
             Ray r(position, looking);
-            r.tryPlaceBlock(game.getWorldRef(), Block(dirtId));
+            r.tryPlaceBlock(game.getWorldRef(), Block(dirtIndex));
         }
     } else {
         placeButtonWasPressed = false;

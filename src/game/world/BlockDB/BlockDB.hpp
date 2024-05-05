@@ -2,10 +2,12 @@
 
 #include <GL/gl.h>
 
+#include <cstddef>
 #include <map>
 #include <vector>
 
 #include "glHelpers/utils/logger/logger.hpp"
+#include "world/chunk/block/block.hpp"
 
 #define QuickNumMapImpl
 #include "utils/QuickNumMap/QuickNumMap.hpp"
@@ -13,16 +15,18 @@
 class BlockDB {
 public:
     struct FaceLayers {
-        unsigned int top, bottom, north, south, east, west;
+        GLuint top, bottom, north, south, east, west;
     };
 
-    struct BlockInfo {
+    // struct BlockInfo {
+    //     FaceLayers faces;
+    //     std::uint64_t packHash;
+    //     int blockId;
+    // };
+
+    struct BlockMeshInfo {
         FaceLayers faces;
-        std::uint64_t packHash;
-        int blockId;
     };
-
-    using BlockIdent = std::pair<std::uint64_t, unsigned int>;
 private:
     GLuint textureArrayId;
     bool texturesLoaded = false;
@@ -30,8 +34,9 @@ private:
 
     Logger logger{ "BlockDB", Logger::FGColors::BLUE };
 
-    std::map<std::string, BlockInfo> blocks;
-    QuickNumMap<std::uint64_t, std::vector<BlockInfo>> blocksByHash;
+    std::map<std::string, Block::BlockIndex> blockNamesToIndices;
+    std::vector<std::string> blockNames;
+    std::vector<BlockMeshInfo> blockMeshInfos;
 public:
     BlockDB();
     ~BlockDB();
@@ -52,21 +57,28 @@ public:
     GLuint getTextureId();
 
     /**
-     * Returns the block ident for a block by name
+     * Returns the block index for a block by name
      * @param name Name of the block
     */
-    BlockIdent getIdentByName(std::string name) const;
+    inline Block::BlockIndex getIndexByName(std::string name) const {
+        return blockNamesToIndices.at(name);
+    }
 
     /**
-     * Get the BlockInfo struct for a block of a certain id
-     * @param ident Block Ident to look up
+     * Get the BlockMeshInfo struct for a block of a certain index
+     * @param index Block index to look up
     */
-    const BlockInfo& lookupBlock(BlockIdent ident);
+    inline const BlockMeshInfo& getBlockMeshInfo(Block::BlockIndex index) {
+        return blockMeshInfos.at(index.value);
+    }
 
     /**
-     * Get a const reference to the std::map of blocks
+     * Checks if the block index given is air
+     * @param index Block index to check against
     */
-    const std::map<std::string, BlockInfo>& getBlockMap() const;
+    inline bool isAir(Block::BlockIndex index) {
+        return index.value == 0;
+    }
 };
 
 #undef QuickNumMapImpl

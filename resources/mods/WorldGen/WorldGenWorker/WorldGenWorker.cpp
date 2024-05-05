@@ -9,8 +9,8 @@ void WorldGenWorker::_perlinWorldGenWorker(BlockDB* blockDBPtr, PerlinNoiseWorld
 
     // Check for base block pack as this mod goes with it
 
-    auto dirtBlockID = blockDB.getIdentByName("dirt");
-    auto grassBlockID = blockDB.getIdentByName("grass");
+    auto dirtBlockIndex = blockDB.getIndexByName("dirt");
+    auto grassBlockIndex = blockDB.getIndexByName("grass");
 
 	const siv::PerlinNoise perlin{ generatorSettings.seed };
 
@@ -18,8 +18,8 @@ void WorldGenWorker::_perlinWorldGenWorker(BlockDB* blockDBPtr, PerlinNoiseWorld
         for (int x=0; x<generatorSettings.chunksX*16; x++) {
             const double yMax = perlin.octave2D_01((x * generatorSettings.xStretch), (z * generatorSettings.zStretch), 2) * generatorSettings.yScale;
 
-            for(int y=0; y < yMax; y++) generatedWorld.setBlock(glm::vec3(x, y, z), Block(dirtBlockID), true);
-            generatedWorld.setBlock(glm::vec3(x, yMax, z), Block(grassBlockID), true);
+            for(int y=0; y < yMax; y++) generatedWorld.setBlock(glm::vec3(x, y, z), Block(dirtBlockIndex), true);
+            generatedWorld.setBlock(glm::vec3(x, yMax, z), Block(grassBlockIndex), true);
         }
     }
 
@@ -34,15 +34,15 @@ void WorldGenWorker::_sineWorldGenWorker(BlockDB* blockDBPtr, SineWorldGenDetail
 
     // Check for base block pack as this mod goes with it
 
-    auto dirtBlockID = blockDB.getIdentByName("dirt");
-    auto grassBlockID = blockDB.getIdentByName("grass");
+    auto dirtBlockIndex = blockDB.getIndexByName("dirt");
+    auto grassBlockIndex = blockDB.getIndexByName("grass");
     
     for (int z=0; z<generatorSettings.chunksZ*16; z++) {
         for (int x=0; x<generatorSettings.chunksX*16; x++) {
             const double yMax = .25f * generatorSettings.scale * (std::cos(x * generatorSettings.horizStretch) + std::cos(z * generatorSettings.horizStretch) + 2.f);
 
-            for(int y=0; y < yMax; y++) generatedWorld.setBlock(glm::vec3(x, y, z), Block(dirtBlockID), true);
-            generatedWorld.setBlock(glm::vec3(x, yMax, z), Block(grassBlockID), true);
+            for(int y=0; y < yMax; y++) generatedWorld.setBlock(glm::vec3(x, y, z), Block(dirtBlockIndex), true);
+            generatedWorld.setBlock(glm::vec3(x, yMax, z), Block(grassBlockIndex), true);
         }
     }
 

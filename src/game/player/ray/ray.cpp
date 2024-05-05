@@ -13,14 +13,16 @@ bool Ray::tryBreakBlock(World& world, float maxDist) {
     glm::vec3 moveVec = direction * moveScalar;
     double distTraveled = 0;
 
+    auto airBlockIndex = world.getBlockDBRef().getIndexByName("air");
+
     while(distTraveled < maxDist) {
         cPos += moveVec;
         distTraveled += moveScalar;
         // Check if the ray is in world bounds
 
         if (world.coordinatesInWorld(cPos)
-         && world.getBlock(cPos).getBlockId() != 0) {
-            world.setBlock(cPos, Block(0));
+         && !world.getBlockDBRef().isAir(world.getBlock(cPos).getIndex())) {
+            world.setBlock(cPos, Block(airBlockIndex));
             return true;
         }
     }
@@ -37,7 +39,7 @@ bool Ray::tryPlaceBlock(World& world, Block block, float maxDist) {
         auto pos = startPosition + direction * glm::vec3(distTraveled);
         if (!world.coordinatesInWorld(pos)) continue;
 
-        if (world.getBlock(pos).getBlockId() != 0) {
+        if (!world.getBlockDBRef().isAir(world.getBlock(pos).getIndex())) {
             world.setBlock(beforePos, block);
             return true;
         }

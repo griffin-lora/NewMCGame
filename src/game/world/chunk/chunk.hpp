@@ -13,12 +13,12 @@ class World;
 
 class Chunk {
 private:
-    std::vector<Block> blocks;
+    std::vector<Block::BlockIndex> blockIndices;
 
     ChunkMesh mesh;
     bool meshUpdatedNeeded = true;
 
-    Block& getBlockReference(glm::vec3 pos);
+    Block::BlockIndex& getBlockIndex(glm::vec3 pos);
 public:
     Chunk();
     Chunk(Chunk&&);

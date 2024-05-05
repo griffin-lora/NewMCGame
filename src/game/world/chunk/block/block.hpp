@@ -3,8 +3,10 @@
 #include <utility>
 #include <glm/glm.hpp>
 
+
 class Block {
 public:
+    struct BlockIndex { uint32_t value; };
     enum class BlockFace {
         NORTH, // +X
         SOUTH, // -X
@@ -14,14 +16,9 @@ public:
         BOTTOM // -Y
     };
 private:
-    uint64_t packHash;
-    unsigned int blockId;
+    BlockIndex index;
 public:
-    Block(unsigned int bt = 0, std::uint64_t packHash = 0);
-    Block(std::pair<std::uint64_t, unsigned int> ident);
+    inline Block(BlockIndex _index): index(_index) {}
 
-    ~Block();
-
-    unsigned int getBlockId() const;
-    std::pair<std::uint64_t, unsigned int> getIdent() const;
+    inline BlockIndex getIndex() const { return index; }
 };

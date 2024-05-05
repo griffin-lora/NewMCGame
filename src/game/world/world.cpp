@@ -307,10 +307,6 @@ bool World::worldSaveExists(std::string saveName) const {
     return fs::is_directory(saveFolder) && fs::exists(worldDataFilepath) && fs::is_directory(chunksFolder);
 }
 
-BlockDB& World::getBlockDBRef() {
-    return blockDB;
-}
-
 void World::moveChunks(World& w) {
     chunks = std::move(w.chunks);
     sizeX = w.sizeX;

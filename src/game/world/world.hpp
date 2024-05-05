@@ -112,8 +112,7 @@ public:
     /**
      * Get a reference the BlockDB
     */
-    BlockDB& getBlockDBRef();
-
+    inline BlockDB& getBlockDBRef() { return blockDB; }
 
     // Move chunks from another world object into this world
     void moveChunks(World& world);
