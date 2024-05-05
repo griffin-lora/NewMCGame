@@ -6,11 +6,12 @@
 #include <span>
 
 #include "utils/NotCopyable.hpp"
+#include "world/chunk/block/BlockVertex.hpp"
 
 class ChunkMesh : public NonCopyable {
 private:
     std::size_t vertexCount = 0;
-    GLuint vertexBuffer, layerBuffer;
+    GLuint vertexBuffer;
     bool buffersCreated = false;
 public:
     ChunkMesh();
@@ -20,10 +21,9 @@ public:
 
     void createBuffers();
     void deleteBuffers();
-    void bufferChunkData(std::span<glm::vec3> vertexInformation, std::span<GLint> layerInformation);
+    void bufferChunkData(std::span<BlockVertex> vertices);
 
     inline std::size_t getVertexCount() const { return vertexCount; }
     inline bool buffersReady() const { return buffersCreated; }
     inline GLuint getVertexBuffer() const { return vertexBuffer; }
-    inline GLuint getLayerBuffer() const { return layerBuffer; }
 };

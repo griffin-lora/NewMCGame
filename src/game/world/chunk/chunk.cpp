@@ -3,6 +3,7 @@
 #include <ratio>
 #include <string.h>
 #include "../world.hpp"
+#include "world/chunk/block/BlockVertex.hpp"
 #include <stdexcept>
 #include <chrono>
 #include <string>
@@ -57,8 +58,7 @@ void Chunk::buildMesh(World& world, glm::vec3 chunkCoords) {
 
     meshUpdatedNeeded = false;
 
-    std::vector<glm::vec3> vertices;
-    std::vector<GLint> layers;
+    std::vector<BlockVertex> vertices;
 
     Chunk* northChunk = chunkCoords.x + 1 >= world.chunkSizeX() ? nullptr : &world.getChunkRef(chunkCoords + glm::vec3(1, 0, 0));
     Chunk* southChunk = chunkCoords.x - 1 < 0 ? nullptr : &world.getChunkRef(chunkCoords + glm::vec3(-1, 0, 0));
@@ -85,8 +85,6 @@ void Chunk::buildMesh(World& world, glm::vec3 chunkCoords) {
                 using namespace glm;
 
                 auto addFace = [&](std::array<glm::vec3, 6> verts, Block::BlockFace face) {
-                    vertices.insert(vertices.end(), verts.begin(), verts.end());
-
                     int layerId;
                     switch(face){
                         case Block::BlockFace::NORTH:  layerId = meshInfo.faces.north; break;
@@ -97,7 +95,9 @@ void Chunk::buildMesh(World& world, glm::vec3 chunkCoords) {
                         case Block::BlockFace::BOTTOM: layerId = meshInfo.faces.bottom; break;
                     }
 
-                    for (int i=0; i<6; i++) layers.push_back(layerId);
+                    for (int i = 0; i < 6; i++) {
+                        vertices.push_back(BlockVertex(layerId, face, cPos.x, cPos.y, cPos.z));
+                    }
                 };
                 
                 // +X Face Check
@@ -180,7 +180,7 @@ void Chunk::buildMesh(World& world, glm::vec3 chunkCoords) {
     logger.info("Chunk { " + std::to_string(chunkCoords.x) + ", " + std::to_string(chunkCoords.y) + ", " + std::to_string(chunkCoords.z) + " } mesh built in " + std::to_string(microseconds) + "μs");
     logger.info("Average mesh build time: " + std::to_string(avgMicroseconds) + "μs");
     
-    mesh.bufferChunkData(vertices, layers);
+    mesh.bufferChunkData(vertices);
 }
 
 std::vector<std::uint8_t> Chunk::serialize() const {

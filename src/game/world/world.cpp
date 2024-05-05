@@ -168,23 +168,12 @@ void World::drawMeshes(const glm::mat4& viewProjection, glm::vec3 observerPositi
 
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, chunkMesh.getVertexBuffer());
-        glVertexAttribPointer(
-            0,                  // attribute 0.
-            3,                  // size
-            GL_FLOAT,           // type
-            GL_FALSE,           // normalized?
-            0,                  // stride
-            (void*)0            // array buffer offset
-        );
-
-        glEnableVertexAttribArray(1);
-        glBindBuffer(GL_ARRAY_BUFFER, chunkMesh.getLayerBuffer());
         glVertexAttribIPointer(
-            1,                  // attribute 1.
-            1,                  // size
-            GL_INT,             // type
-            0,                  // stride
-            (void*)0            // array buffer offset
+            0,
+            1,
+            GL_UNSIGNED_INT,
+            0,
+            (void*)0
         );
 
         std::size_t n = chunkMesh.getVertexCount();
@@ -193,7 +182,6 @@ void World::drawMeshes(const glm::mat4& viewProjection, glm::vec3 observerPositi
         totalVertexCount += n;
 
         glDisableVertexAttribArray(0);
-        glDisableVertexAttribArray(1);
     }
 }
 
