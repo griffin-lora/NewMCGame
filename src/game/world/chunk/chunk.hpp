@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <cstddef>
 #include <vector>
 #include <GL/glew.h>
 
@@ -18,7 +19,7 @@ private:
     ChunkMesh mesh;
     bool meshUpdatedNeeded = true;
 
-    Block::BlockIndex& getBlockIndex(glm::vec3 pos);
+    Block::BlockIndex& getBlockIndex(std::size_t x, std::size_t y, std::size_t z);
     Block::BlockIndex& getBlockIndexAt(glm::vec3 pos);
 public:
     Chunk();

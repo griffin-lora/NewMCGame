@@ -8,9 +8,8 @@
 #include <chrono>
 #include <string>
 
-Block::BlockIndex& Chunk::getBlockIndex(glm::vec3 localPos) {
-    int i = (int)localPos.x + (int)localPos.z * 16 + (int)localPos.y * 16 * 16;
-    return blockIndices[i];
+Block::BlockIndex& Chunk::getBlockIndex(std::size_t x, std::size_t y, std::size_t z) {
+    return blockIndices[x + z * 16 + y * 16 * 16];
 }
 
 Block::BlockIndex& Chunk::getBlockIndexAt(glm::vec3 localPos) {
@@ -70,13 +69,11 @@ void Chunk::buildMesh(World& world, glm::vec3 chunkCoords) {
     auto& blockDB = world.getBlockDBRef();
 
     // Chunk generation code
-    for (int y=0; y<16; y++) {
-        for (int z=0; z<16; z++) {
-            for (int x=0; x<16; x++) {
-                auto cPos = glm::vec3(x, y, z);
-
+    for (size_t y=0; y<16; y++) {
+        for (size_t z=0; z<16; z++) {
+            for (size_t x=0; x<16; x++) {
                 // Get the block by using its chunk coordinates
-                auto blockIndex = getBlockIndex(cPos);
+                auto blockIndex = getBlockIndex(x, y, z);
 
                 if (blockDB.isAir(blockIndex)) continue;
 
@@ -84,7 +81,7 @@ void Chunk::buildMesh(World& world, glm::vec3 chunkCoords) {
 
                 using namespace glm;
 
-                auto addFace = [&](std::array<glm::vec3, 6> verts, Block::BlockFace face) {
+                auto addFace = [&](Block::BlockFace face) {
                     int layerId;
                     switch(face){
                         case Block::BlockFace::NORTH:  layerId = meshInfo.faces.north; break;
@@ -95,76 +92,51 @@ void Chunk::buildMesh(World& world, glm::vec3 chunkCoords) {
                         case Block::BlockFace::BOTTOM: layerId = meshInfo.faces.bottom; break;
                     }
 
-                    for (int i = 0; i < 6; i++) {
-                        vertices.push_back(BlockVertex(layerId, face, cPos.x, cPos.y, cPos.z));
-                    }
+                    BlockVertex vertex(layerId, face, x, y, z);
+                    vertices.insert(vertices.end(), 6, vertex);
                 };
                 
                 // +X Face Check
-                const std::array<glm::vec3, 6> xPos = {
-                    glm::vec3(x + 1, y, z), glm::vec3(x + 1, y + 1, z),     glm::vec3(x + 1, y + 1, z + 1),
-                    glm::vec3(x + 1, y, z), glm::vec3(x + 1, y + 1, z + 1), glm::vec3(x + 1, y, z + 1),
-                };
                 if (x >= 15) {
-                    if (!northChunk || blockDB.isAir(northChunk->getBlockIndex(vec3(0.f, cPos.y, cPos.z))))
-                        addFace(xPos, Block::BlockFace::NORTH);
-                } else if (blockDB.isAir(getBlockIndex(cPos + vec3(1, 0, 0))))
-                    addFace(xPos, Block::BlockFace::NORTH);
+                    if (!northChunk || blockDB.isAir(northChunk->getBlockIndex(0, y, z)))
+                        addFace(Block::BlockFace::NORTH);
+                } else if (blockDB.isAir(getBlockIndex(x + 1u, y, z)))
+                    addFace(Block::BlockFace::NORTH);
 
                 // -X Face Check
-                const std::array<glm::vec3, 6> xNeg = {
-                    glm::vec3(x, y, z + 1), glm::vec3(x, y + 1, z + 1), glm::vec3(x, y + 1, z),
-                    glm::vec3(x, y, z + 1), glm::vec3(x, y + 1, z),     glm::vec3(x, y, z),
-                };
                 if (x < 1) {
-                    if (!southChunk || blockDB.isAir(southChunk->getBlockIndex(vec3(15.f, cPos.y, cPos.z))))
-                        addFace(xNeg, Block::BlockFace::SOUTH);
-                } else if (blockDB.isAir(getBlockIndex(cPos + vec3(-1, 0, 0))))
-                    addFace(xNeg, Block::BlockFace::SOUTH);
+                    if (!southChunk || blockDB.isAir(southChunk->getBlockIndex(15, y, z)))
+                        addFace(Block::BlockFace::SOUTH);
+                } else if (blockDB.isAir(getBlockIndex(x - 1u, y, z)))
+                    addFace(Block::BlockFace::SOUTH);
 
                 // +Z Face Check
-                const std::array<glm::vec3, 6> zPos = {
-                    glm::vec3(x + 1, y, z + 1), glm::vec3(x + 1, y + 1, z + 1), glm::vec3(x, y + 1, z + 1),
-                    glm::vec3(x + 1, y, z + 1), glm::vec3(x, y + 1, z + 1),     glm::vec3(x, y, z + 1),
-                };
                 if (z >= 15) {
-                    if (!eastChunk || blockDB.isAir(eastChunk->getBlockIndex(vec3(cPos.x, cPos.y, 0))))
-                        addFace(zPos, Block::BlockFace::EAST);
-                } else if (blockDB.isAir(getBlockIndex(cPos + vec3(0, 0, 1))))
-                    addFace(zPos, Block::BlockFace::EAST);
+                    if (!eastChunk || blockDB.isAir(eastChunk->getBlockIndex(x, y, 0)))
+                        addFace(Block::BlockFace::EAST);
+                } else if (blockDB.isAir(getBlockIndex(x, y, z + 1u)))
+                    addFace(Block::BlockFace::EAST);
 
                 // -Z Face Check
-                const std::array<glm::vec3, 6> zNeg = {
-                    glm::vec3(x, y, z), glm::vec3(x, y + 1, z),     glm::vec3(x + 1, y + 1, z),
-                    glm::vec3(x, y, z), glm::vec3(x + 1, y + 1, z), glm::vec3(x + 1, y, z),
-                };
                 if (z < 1) {
-                    if (!westChunk || blockDB.isAir(westChunk->getBlockIndex(vec3(cPos.x, cPos.y, 15))))
-                        addFace(zNeg, Block::BlockFace::WEST);
-                } else if (blockDB.isAir(getBlockIndex(cPos + vec3(0, 0, -1))))
-                    addFace(zNeg, Block::BlockFace::WEST);
+                    if (!westChunk || blockDB.isAir(westChunk->getBlockIndex(x, y, 15)))
+                        addFace(Block::BlockFace::WEST);
+                } else if (blockDB.isAir(getBlockIndex(x, y, z - 1u)))
+                    addFace(Block::BlockFace::WEST);
 
                 // +Y Face Check
-                const std::array<glm::vec3, 6> yPos = {
-                    glm::vec3(x, y + 1, z), glm::vec3(x, y + 1, z + 1),     glm::vec3(x + 1, y + 1, z + 1),
-                    glm::vec3(x, y + 1, z), glm::vec3(x + 1, y + 1, z + 1), glm::vec3(x + 1, y + 1, z),
-                };
                 if (y >= 15) {
-                    if (!topChunk || blockDB.isAir(topChunk->getBlockIndex(vec3(cPos.x, 0, cPos.z))))
-                        addFace(yPos, Block::BlockFace::TOP);
-                } else if (blockDB.isAir(getBlockIndex(cPos + vec3(0, 1, 0))))
-                    addFace(yPos, Block::BlockFace::TOP);
+                    if (!topChunk || blockDB.isAir(topChunk->getBlockIndex(x, 0, z)))
+                        addFace(Block::BlockFace::TOP);
+                } else if (blockDB.isAir(getBlockIndex(x, y + 1u, z)))
+                    addFace(Block::BlockFace::TOP);
 
                 // -Y Face Check
-                const std::array<glm::vec3, 6> yNeg = {
-                    glm::vec3(x, y, z), glm::vec3(x + 1, y, z),     glm::vec3(x + 1, y, z + 1),
-                    glm::vec3(x, y, z), glm::vec3(x + 1, y, z + 1), glm::vec3(x, y, z + 1),
-                };
                 if (y < 1) {
-                    if (!bottomChunk || blockDB.isAir(bottomChunk->getBlockIndex(vec3(cPos.x, 15, cPos.z))))
-                        addFace(yNeg, Block::BlockFace::BOTTOM);
-                } else if (blockDB.isAir(getBlockIndex(cPos + vec3(0, -1, 0))))
-                    addFace(yNeg, Block::BlockFace::BOTTOM);
+                    if (!bottomChunk || blockDB.isAir(bottomChunk->getBlockIndex(x, 15, z)))
+                        addFace(Block::BlockFace::BOTTOM);
+                } else if (blockDB.isAir(getBlockIndex(x, y - 1u, z)))
+                    addFace(Block::BlockFace::BOTTOM);
             }
         }
     }
