@@ -61,11 +61,9 @@ int main(int argc, char** argv) {
     
     ChunkRenderInfo chunkRenderInfos[4][4][4];
 
-    std::vector<ChunkMeshVertex> chunkMeshVertices;
 
     for (std::size_t x = 0; x < 4; x++) for (std::size_t y = 0; y < 4; y++) for (std::size_t z = 0; z < 4; z++) {
-        chunkMeshVertices.clear();
-        chunkMeshVertices = buildChunkMeshVertices(
+        std::vector<ChunkMeshVertex> chunkMeshVertices = buildChunkMeshVertices(
             (ChunkMeshBuildInfo) {
                 .airIdent = 0,
                 .blockMeshBuildInfos = blockMeshBuildInfos
