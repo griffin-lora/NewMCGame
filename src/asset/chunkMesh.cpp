@@ -59,17 +59,34 @@ std::vector<ChunkMeshVertex> buildChunkMeshVertices(
         //     ));
         // }
 
+        // +X Face Check (FRONT)
+        if ((x >= 15 && (!frontArray || frontArray->idents[0u][y][z] == info.airIdent)) || array->idents[x + 1u][y][z] == info.airIdent) {
+            vertices.insert(vertices.end(), NUM_CUBE_BLOCK_VERTICES, createChunkMeshVertex(blockInfo->faceLayerIndices.front, BlockFace::FRONT, x, y, z));
+        }
+
+        // -X Face Check (BACK)
+        if ((x < 0 && (!backArray || backArray->idents[NUM_CHUNK_AXIS_BLOCKS - 1u][y][z] == info.airIdent)) || array->idents[x - 1u][y][z] == info.airIdent) {
+            vertices.insert(vertices.end(), NUM_CUBE_BLOCK_VERTICES, createChunkMeshVertex(blockInfo->faceLayerIndices.back, BlockFace::BACK, x, y, z));
+        }
+
         // +Y Face Check (TOP)
-        if (y >= 15) {
-            if (!topArray || topArray->idents[x][0u][z] == info.airIdent) {
-                vertices.insert(vertices.end(), NUM_CUBE_BLOCK_VERTICES, createChunkMeshVertex(
-                    blockInfo->faceLayerIndices.top, BlockFace::TOP, x, y, z
-                ));
-            }
-        } else if (topArray->idents[x][y + 1u][z] == info.airIdent) {
-            vertices.insert(vertices.end(), NUM_CUBE_BLOCK_VERTICES, createChunkMeshVertex(
-                blockInfo->faceLayerIndices.top, BlockFace::TOP, x, y, z
-            ));
+        if ((y >= 15 && (!topArray || topArray->idents[x][0u][z] == info.airIdent)) || array->idents[x][y + 1u][z] == info.airIdent) {
+            vertices.insert(vertices.end(), NUM_CUBE_BLOCK_VERTICES, createChunkMeshVertex(blockInfo->faceLayerIndices.top, BlockFace::TOP, x, y, z));
+        }
+
+        // -Y Face Check (BOTTOM)
+        if ((y < 0 && (!bottomArray || bottomArray->idents[x][NUM_CHUNK_AXIS_BLOCKS - 1u][z] == info.airIdent)) || array->idents[x][y - 1u][z] == info.airIdent) {
+            vertices.insert(vertices.end(), NUM_CUBE_BLOCK_VERTICES, createChunkMeshVertex(blockInfo->faceLayerIndices.bottom, BlockFace::BOTTOM, x, y, z));
+        }
+
+        // +Z Face Check (RIGHT)
+        if ((z >= 15 && (!rightArray || rightArray->idents[x][y][0u] == info.airIdent)) || array->idents[x][y][z + 1u] == info.airIdent) {
+            vertices.insert(vertices.end(), NUM_CUBE_BLOCK_VERTICES, createChunkMeshVertex(blockInfo->faceLayerIndices.right, BlockFace::RIGHT, x, y, z));
+        }
+
+        // -X Face Check (LEFT)
+        if ((x < 0 && (!leftArray || leftArray->idents[x][y][NUM_CHUNK_AXIS_BLOCKS - 1u] == info.airIdent)) || array->idents[x][y][z - 1u] == info.airIdent) {
+            vertices.insert(vertices.end(), NUM_CUBE_BLOCK_VERTICES, createChunkMeshVertex(blockInfo->faceLayerIndices.left, BlockFace::LEFT, x, y, z));
         }
     }
 

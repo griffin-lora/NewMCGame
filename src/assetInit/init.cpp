@@ -2,6 +2,10 @@
 #include "glHelpers/shader/shader.hpp"
 #include "render/chunkRender.hpp"
 
+#include <glm/ext/matrix_clip_space.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <GL/glew.h>
 
 static GLuint vertexArray;
@@ -38,4 +42,12 @@ void initRenderAssets() {
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     
     // TODO: Actually load block textures
+
+    glm::mat4 projection = glm::perspective(glm::radians(75.0f), 16.0f/9.0f, 0.01f, 1000.0f);
+    glm::mat4 view = glm::lookAt(glm::vec3(20.0f, 3.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+    glm::mat4 viewProjection = projection * view;
+    
+    glUseProgram(chunkShader);
+    glUniformMatrix4fv(chunkViewProjectionLocation, 1, GL_FALSE, &viewProjection[0][0]);
 }
