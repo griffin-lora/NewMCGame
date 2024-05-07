@@ -9,7 +9,6 @@
 #include "render/chunkRender.hpp"
 #include "window.hpp"
 #include <cstddef>
-#include <memory>
 #include <vector>
 
 int main(int argc, char** argv) {
@@ -21,11 +20,11 @@ int main(int argc, char** argv) {
 
     logger.info("Finished initialization");
 
-    std::unique_ptr<BlockTypeIdentArray> chunkBlockIdentArrays[4][4][4];
+    BlockTypeIdentArray* chunkBlockIdentArrays[4][4][4];
 
     for (std::size_t cx = 0; cx < 4; cx++) for (std::size_t cy = 0; cy < 4; cy++) for (std::size_t cz = 0; cz < 4; cz++) {
-        chunkBlockIdentArrays[cx][cy][cz] = std::make_unique<BlockTypeIdentArray>();
-        BlockTypeIdentArray* array = chunkBlockIdentArrays[cx][cy][cz].get();
+        chunkBlockIdentArrays[cx][cy][cz] = new BlockTypeIdentArray;
+        BlockTypeIdentArray* array = chunkBlockIdentArrays[cx][cy][cz];
 
         for (std::size_t x = 0; x < NUM_CHUNK_AXIS_BLOCKS; x++) for (std::size_t y = 0; y < NUM_CHUNK_AXIS_BLOCKS; y++) for (std::size_t z = 0; z < NUM_CHUNK_AXIS_BLOCKS; z++) {
             if (y <= 4) {
@@ -45,12 +44,12 @@ int main(int argc, char** argv) {
             .airIdent = 0,
             .blockMeshBuildInfos = blockMeshBuildInfos
         },
-        chunkBlockIdentArrays[0][0][0].get(),
-        chunkBlockIdentArrays[1][0][0].get(),
+        chunkBlockIdentArrays[0][0][0],
+        chunkBlockIdentArrays[1][0][0],
         nullptr,
-        chunkBlockIdentArrays[0][1][0].get(),
+        chunkBlockIdentArrays[0][1][0],
         nullptr,
-        chunkBlockIdentArrays[0][0][1].get(),
+        chunkBlockIdentArrays[0][0][1],
         nullptr
     );
 
@@ -84,6 +83,10 @@ int main(int argc, char** argv) {
 
         renderWindow();
     } while (isWindowActive());
+
+    for (std::size_t x = 0; x < 4; x++) for (std::size_t y = 0; y < 4; y++) for (std::size_t z = 0; z < 4; z++) {
+        delete chunkBlockIdentArrays[x][y][z];
+    }
 
     return 0;
 }

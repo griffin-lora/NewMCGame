@@ -2,6 +2,7 @@
 #include "block.hpp"
 #include "glHelpers/utils/logger/logger.hpp"
 #include <cstddef>
+#include <string>
 #include <vector>
 #include <chrono>
 
@@ -10,9 +11,9 @@
 #define NUM_FACE_BITS 3
 #define NUM_CHUNK_AXIS_BITS 6
 
-static ChunkMeshVertex createChunkMeshVertex(GLuint layer_index, BlockFace face, std::size_t x, std::size_t y, std::size_t z) {
+static ChunkMeshVertex createChunkMeshVertex(GLuint layerIndex, BlockFace face, std::size_t x, std::size_t y, std::size_t z) {
     return 0 |
-        (std::uint8_t)layer_index |
+        (std::uint8_t)layerIndex |
         ((std::uint8_t)face << NUM_LAYER_INDEX_BITS) |
         ((std::uint8_t)x << (NUM_LAYER_INDEX_BITS + NUM_FACE_BITS)) |
         ((std::uint8_t)y << (NUM_LAYER_INDEX_BITS + NUM_FACE_BITS + 1*NUM_CHUNK_AXIS_BITS)) |
@@ -45,49 +46,51 @@ std::vector<ChunkMeshVertex> buildChunkMeshVertices(
         if (ident == info.airIdent) { continue; }
 
         const BlockMeshBuildInfo* blockInfo = &info.blockMeshBuildInfos[ident];
+
+        auto addFace = [&](BlockFace face) {
+            GLuint layerIndex;
+            switch (face) {
+                case BlockFace::FRONT: layerIndex = blockInfo->faceLayerIndices.front; break;
+                case BlockFace::BACK: layerIndex = blockInfo->faceLayerIndices.back; break;
+                case BlockFace::TOP: layerIndex = blockInfo->faceLayerIndices.top; break;
+                case BlockFace::BOTTOM: layerIndex = blockInfo->faceLayerIndices.bottom; break;
+                case BlockFace::RIGHT: layerIndex = blockInfo->faceLayerIndices.right; break;
+                case BlockFace::LEFT: layerIndex = blockInfo->faceLayerIndices.left; break;
+            }
+
+            ChunkMeshVertex vertex = createChunkMeshVertex(layerIndex, face, x, y, z);
+            vertices.insert(vertices.end(), 6, vertex);
+        };
         
-        // // +X Face Check (FRONT)
-        // if (x >= 15) {
-        //     if (!frontArray || frontArray->idents[0u][y][z] == info.airIdent) {
-        //         vertices.insert(vertices.end(), NUM_CUBE_BLOCK_VERTICES, createChunkMeshVertex(
-        //             blockInfo->faceLayerIndices.front, BlockFace::FRONT, x, y, z
-        //         ));
-        //     }
-        // } else if (frontArray->idents[x + 1u][y][z] == info.airIdent) {
-        //     vertices.insert(vertices.end(), NUM_CUBE_BLOCK_VERTICES, createChunkMeshVertex(
-        //         blockInfo->faceLayerIndices.front, BlockFace::FRONT, x, y, z
-        //     ));
-        // }
-
-        // +X Face Check (FRONT)
-        if ((x >= 15 && (!frontArray || frontArray->idents[0u][y][z] == info.airIdent)) || array->idents[x + 1u][y][z] == info.airIdent) {
-            vertices.insert(vertices.end(), NUM_CUBE_BLOCK_VERTICES, createChunkMeshVertex(blockInfo->faceLayerIndices.front, BlockFace::FRONT, x, y, z));
-        }
-
-        // -X Face Check (BACK)
-        if ((x < 0 && (!backArray || backArray->idents[NUM_CHUNK_AXIS_BLOCKS - 1u][y][z] == info.airIdent)) || array->idents[x - 1u][y][z] == info.airIdent) {
-            vertices.insert(vertices.end(), NUM_CUBE_BLOCK_VERTICES, createChunkMeshVertex(blockInfo->faceLayerIndices.back, BlockFace::BACK, x, y, z));
-        }
-
-        // +Y Face Check (TOP)
-        if ((y >= 15 && (!topArray || topArray->idents[x][0u][z] == info.airIdent)) || array->idents[x][y + 1u][z] == info.airIdent) {
-            vertices.insert(vertices.end(), NUM_CUBE_BLOCK_VERTICES, createChunkMeshVertex(blockInfo->faceLayerIndices.top, BlockFace::TOP, x, y, z));
-        }
-
-        // -Y Face Check (BOTTOM)
-        if ((y < 0 && (!bottomArray || bottomArray->idents[x][NUM_CHUNK_AXIS_BLOCKS - 1u][z] == info.airIdent)) || array->idents[x][y - 1u][z] == info.airIdent) {
-            vertices.insert(vertices.end(), NUM_CUBE_BLOCK_VERTICES, createChunkMeshVertex(blockInfo->faceLayerIndices.bottom, BlockFace::BOTTOM, x, y, z));
-        }
-
-        // +Z Face Check (RIGHT)
-        if ((z >= 15 && (!rightArray || rightArray->idents[x][y][0u] == info.airIdent)) || array->idents[x][y][z + 1u] == info.airIdent) {
-            vertices.insert(vertices.end(), NUM_CUBE_BLOCK_VERTICES, createChunkMeshVertex(blockInfo->faceLayerIndices.right, BlockFace::RIGHT, x, y, z));
-        }
-
-        // -X Face Check (LEFT)
-        if ((x < 0 && (!leftArray || leftArray->idents[x][y][NUM_CHUNK_AXIS_BLOCKS - 1u] == info.airIdent)) || array->idents[x][y][z - 1u] == info.airIdent) {
-            vertices.insert(vertices.end(), NUM_CUBE_BLOCK_VERTICES, createChunkMeshVertex(blockInfo->faceLayerIndices.left, BlockFace::LEFT, x, y, z));
-        }
+        // +X Face Check
+        if (x >= 15) {
+            if (!frontArray || frontArray->idents[0u][y][z] == info.airIdent) { addFace(BlockFace::FRONT); }
+        } else if (array->idents[x + 1u][y][z] == info.airIdent) { addFace(BlockFace::FRONT); }
+        
+        // -X Face Check
+        if (x < 1) {
+            if (!backArray || backArray->idents[15u][y][z] == info.airIdent) { addFace(BlockFace::BACK); }
+        } else if (array->idents[x - 1u][y][z] == info.airIdent) { addFace(BlockFace::BACK); }
+        
+        // +Y Face Check
+        if (y >= 15) {
+            if (!topArray || topArray->idents[x][0u][z] == info.airIdent) { addFace(BlockFace::TOP); }
+        } else if (array->idents[x][y + 1u][z] == info.airIdent) { addFace(BlockFace::TOP); }
+        
+        // -Y Face Check
+        if (y < 1) {
+            if (!bottomArray || bottomArray->idents[x][15u][z] == info.airIdent) { addFace(BlockFace::BOTTOM); }
+        } else if (array->idents[x][y - 1u][z] == info.airIdent) { addFace(BlockFace::BOTTOM); }
+        
+        // +Z Face Check
+        if (z >= 15) {
+            if (!rightArray || rightArray->idents[x][y][0u] == info.airIdent) { addFace(BlockFace::RIGHT); }
+        } else if (array->idents[x][y][z + 1u] == info.airIdent) { addFace(BlockFace::RIGHT); }
+        
+        // -Z Face Check
+        if (z < 1) {
+            if (!leftArray || leftArray->idents[x][y][15u] == info.airIdent) { addFace(BlockFace::LEFT); }
+        } else if (array->idents[x][y][z - 1u] == info.airIdent) { addFace(BlockFace::LEFT); }
     }
 
     numMeshesBuilt++;
