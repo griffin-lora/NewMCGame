@@ -2,25 +2,30 @@
 
 #include <array>
 #include <cstddef>
+#include <memory>
 #include <vector>
+#include <memory.h>
 #include <GL/glew.h>
 
 #include <vector>
 
 #include "block/block.hpp"
 #include "ChunkMesh/ChunkMesh.hpp"
+#include "utils/NotCopyable.hpp"
 
 class World;
 
 class Chunk {
 private:
-    std::vector<Block::BlockIndex> blockIndices;
+    struct BlockIndexArray : public NonCopyable {
+        // Accessed as indices[y][z][x]
+        Block::BlockIndex indices[16][16][16];
+    };
+
+    std::unique_ptr<BlockIndexArray> blockIndexArray;
 
     ChunkMesh mesh;
     bool meshUpdatedNeeded = true;
-
-    Block::BlockIndex& getBlockIndex(std::size_t x, std::size_t y, std::size_t z);
-    Block::BlockIndex& getBlockIndexAt(glm::vec3 pos);
 public:
     Chunk();
     Chunk(Chunk&&);

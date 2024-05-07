@@ -1,5 +1,7 @@
 #include "chunk.hpp"
 
+#include <cstring>
+#include <memory>
 #include <ratio>
 #include <string.h>
 #include "../world.hpp"
@@ -8,20 +10,9 @@
 #include <chrono>
 #include <string>
 
-Block::BlockIndex& Chunk::getBlockIndex(std::size_t x, std::size_t y, std::size_t z) {
-    return blockIndices[x + z * 16 + y * 16 * 16];
-}
-
-Block::BlockIndex& Chunk::getBlockIndexAt(glm::vec3 localPos) {
-    int i = (int)localPos.x + (int)localPos.z * 16 + (int)localPos.y * 16 * 16;
-    return blockIndices.at(i);
-}
-
-Chunk::Chunk() {
-    blockIndices.resize(16*16*16);
-}
+Chunk::Chunk(): blockIndexArray(std::make_unique<BlockIndexArray>()) {}
 Chunk::Chunk(Chunk&& ochunk) {
-    blockIndices = std::move(ochunk.blockIndices);
+    blockIndexArray = std::move(ochunk.blockIndexArray);
     mesh = std::move(ochunk.mesh);
     meshUpdatedNeeded = ochunk.meshUpdatedNeeded;
 }
@@ -39,11 +30,11 @@ bool Chunk::pendingMeshUpdate() const {
 }
 
 Block Chunk::getBlock(glm::vec3 pos) {
-    return Block(getBlockIndexAt(pos));
+    return Block(blockIndexArray->indices[(std::size_t) pos.y][(std::size_t) pos.z][(std::size_t) pos.x]);
 }
 
 void Chunk::setBlock(glm::vec3 pos, Block block) {
-    getBlockIndexAt(pos) = block.getIndex();
+    blockIndexArray->indices[(std::size_t) pos.y][(std::size_t) pos.z][(std::size_t) pos.x] = block.getIndex();
     meshUpdatedNeeded = true;
 }
 
@@ -52,19 +43,20 @@ static size_t numMeshesBuilt = 0;
 static double totalMicroseconds = 0.0;
 
 void Chunk::buildMesh(World& world, glm::vec3 chunkCoords) {
-
     auto clockStart = std::chrono::high_resolution_clock::now();
 
     meshUpdatedNeeded = false;
 
     std::vector<BlockVertex> vertices;
 
-    Chunk* northChunk = chunkCoords.x + 1 >= world.chunkSizeX() ? nullptr : &world.getChunkRef(chunkCoords + glm::vec3(1, 0, 0));
-    Chunk* southChunk = chunkCoords.x - 1 < 0 ? nullptr : &world.getChunkRef(chunkCoords + glm::vec3(-1, 0, 0));
-    Chunk* eastChunk = chunkCoords.z + 1 >= world.chunkSizeZ() ? nullptr : &world.getChunkRef(chunkCoords + glm::vec3(0, 0, 1));
-    Chunk* westChunk = chunkCoords.z - 1 < 0 ? nullptr : &world.getChunkRef(chunkCoords + glm::vec3(0, 0, -1));
-    Chunk* topChunk = chunkCoords.y + 1 >= world.chunkSizeY() ? nullptr : &world.getChunkRef(chunkCoords + glm::vec3(0, 1, 0));
-    Chunk* bottomChunk = chunkCoords.y - 1 < 0 ? nullptr : &world.getChunkRef(chunkCoords + glm::vec3(0, -1, 0));
+    const BlockIndexArray* indices = blockIndexArray.get();
+
+    const BlockIndexArray* northChunkIndices = chunkCoords.x + 1 >= world.chunkSizeX() ? nullptr : world.getChunkRef(chunkCoords + glm::vec3(1, 0, 0)).blockIndexArray.get();
+    const BlockIndexArray* southChunkIndices = chunkCoords.x - 1 < 0 ? nullptr : world.getChunkRef(chunkCoords + glm::vec3(-1, 0, 0)).blockIndexArray.get();
+    const BlockIndexArray* eastChunkIndices = chunkCoords.z + 1 >= world.chunkSizeZ() ? nullptr : world.getChunkRef(chunkCoords + glm::vec3(0, 0, 1)).blockIndexArray.get();
+    const BlockIndexArray* westChunkIndices = chunkCoords.z - 1 < 0 ? nullptr : world.getChunkRef(chunkCoords + glm::vec3(0, 0, -1)).blockIndexArray.get();
+    const BlockIndexArray* topChunkIndices = chunkCoords.y + 1 >= world.chunkSizeY() ? nullptr : world.getChunkRef(chunkCoords + glm::vec3(0, 1, 0)).blockIndexArray.get();
+    const BlockIndexArray* bottomChunkIndices = chunkCoords.y - 1 < 0 ? nullptr : world.getChunkRef(chunkCoords + glm::vec3(0, -1, 0)).blockIndexArray.get();
 
     auto& blockDB = world.getBlockDBRef();
 
@@ -73,7 +65,7 @@ void Chunk::buildMesh(World& world, glm::vec3 chunkCoords) {
         for (size_t z=0; z<16; z++) {
             for (size_t x=0; x<16; x++) {
                 // Get the block by using its chunk coordinates
-                auto blockIndex = getBlockIndex(x, y, z);
+                Block::BlockIndex blockIndex = indices->indices[y][z][x];
 
                 if (blockDB.isAir(blockIndex)) continue;
 
@@ -98,44 +90,44 @@ void Chunk::buildMesh(World& world, glm::vec3 chunkCoords) {
                 
                 // +X Face Check
                 if (x >= 15) {
-                    if (!northChunk || blockDB.isAir(northChunk->getBlockIndex(0, y, z)))
+                    if (!northChunkIndices || blockDB.isAir(northChunkIndices->indices[y][z][0u]))
                         addFace(Block::BlockFace::NORTH);
-                } else if (blockDB.isAir(getBlockIndex(x + 1u, y, z)))
+                } else if (blockDB.isAir(indices->indices[y][z][x + 1u]))
                     addFace(Block::BlockFace::NORTH);
 
                 // -X Face Check
                 if (x < 1) {
-                    if (!southChunk || blockDB.isAir(southChunk->getBlockIndex(15, y, z)))
+                    if (!southChunkIndices || blockDB.isAir(southChunkIndices->indices[y][z][15u]))
                         addFace(Block::BlockFace::SOUTH);
-                } else if (blockDB.isAir(getBlockIndex(x - 1u, y, z)))
+                } else if (blockDB.isAir(indices->indices[y][z][x - 1u]))
                     addFace(Block::BlockFace::SOUTH);
 
                 // +Z Face Check
                 if (z >= 15) {
-                    if (!eastChunk || blockDB.isAir(eastChunk->getBlockIndex(x, y, 0)))
+                    if (!eastChunkIndices || blockDB.isAir(eastChunkIndices->indices[y][0u][x]))
                         addFace(Block::BlockFace::EAST);
-                } else if (blockDB.isAir(getBlockIndex(x, y, z + 1u)))
+                } else if (blockDB.isAir(indices->indices[y][z + 1u][x]))
                     addFace(Block::BlockFace::EAST);
 
                 // -Z Face Check
                 if (z < 1) {
-                    if (!westChunk || blockDB.isAir(westChunk->getBlockIndex(x, y, 15)))
+                    if (!westChunkIndices || blockDB.isAir(westChunkIndices->indices[y][15u][x]))
                         addFace(Block::BlockFace::WEST);
-                } else if (blockDB.isAir(getBlockIndex(x, y, z - 1u)))
+                } else if (blockDB.isAir(indices->indices[y][z - 1u][x]))
                     addFace(Block::BlockFace::WEST);
 
                 // +Y Face Check
                 if (y >= 15) {
-                    if (!topChunk || blockDB.isAir(topChunk->getBlockIndex(x, 0, z)))
+                    if (!topChunkIndices || blockDB.isAir(topChunkIndices->indices[0u][z][x]))
                         addFace(Block::BlockFace::TOP);
-                } else if (blockDB.isAir(getBlockIndex(x, y + 1u, z)))
+                } else if (blockDB.isAir(indices->indices[y + 1u][z][x]))
                     addFace(Block::BlockFace::TOP);
 
                 // -Y Face Check
                 if (y < 1) {
-                    if (!bottomChunk || blockDB.isAir(bottomChunk->getBlockIndex(x, 15, z)))
+                    if (!bottomChunkIndices || blockDB.isAir(bottomChunkIndices->indices[15u][z][x]))
                         addFace(Block::BlockFace::BOTTOM);
-                } else if (blockDB.isAir(getBlockIndex(x, y - 1u, z)))
+                } else if (blockDB.isAir(indices->indices[y - 1u][z][x]))
                     addFace(Block::BlockFace::BOTTOM);
             }
         }
@@ -156,12 +148,12 @@ void Chunk::buildMesh(World& world, glm::vec3 chunkCoords) {
 }
 
 std::vector<std::uint8_t> Chunk::serialize() const {
-    const std::uint8_t* blockIndicesData = (std::uint8_t*)blockIndices.data();
-    return std::vector<std::uint8_t>(blockIndicesData, blockIndicesData + blockIndices.size() * sizeof(Block::BlockIndex));
+    const std::uint8_t* blockIndicesData = (std::uint8_t*)blockIndexArray->indices;
+    return std::vector<std::uint8_t>(blockIndicesData, blockIndicesData + sizeof(blockIndexArray->indices));
 }
 void Chunk::deserialize(const std::vector<std::uint8_t>& data) {
     const Block::BlockIndex* blockIndicesData = (Block::BlockIndex*)data.data();
-    blockIndices = std::vector<Block::BlockIndex>(blockIndicesData, blockIndicesData + data.size());
+    std::memcpy(blockIndexArray->indices, data.data(), sizeof(blockIndexArray->indices));
 }
 
 std::size_t Chunk::serializedChunkSize() {
