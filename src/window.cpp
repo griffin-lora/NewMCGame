@@ -1,9 +1,7 @@
 #include "window.hpp"
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
 #include <stdexcept>
 
-static GLFWwindow* window;
+GLFWwindow* window;
 
 void initWindow() {
     // Init GLFW
