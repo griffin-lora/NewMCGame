@@ -30,6 +30,10 @@ void initWindow() {
 
     // Ensure we can capture the escape key being pressed below
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+
+    glfwSetFramebufferSizeCallback(window, [](GLFWwindow* win, int w, int h) {
+        glViewport(0, 0, w, h);
+    });
 }
 
 void renderWindow() {
