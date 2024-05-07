@@ -27,7 +27,9 @@ int main(int argc, char** argv) {
         BlockTypeIdentArray* array = chunkBlockIdentArrays[cx][cy][cz];
 
         for (std::size_t x = 0; x < NUM_CHUNK_AXIS_BLOCKS; x++) for (std::size_t y = 0; y < NUM_CHUNK_AXIS_BLOCKS; y++) for (std::size_t z = 0; z < NUM_CHUNK_AXIS_BLOCKS; z++) {
-            if (y <= 4) {
+            if (y == 5) {
+                array->idents[x][y][z] = 2;
+            } else if (y <= 4) {
                 array->idents[x][y][z] = 1;
             } else {
                 array->idents[x][y][z] = 0;
@@ -37,7 +39,25 @@ int main(int argc, char** argv) {
 
     logger.info("Populated block type ident arrays");
 
-    BlockMeshBuildInfo blockMeshBuildInfos[2] = { 0 };
+    BlockMeshBuildInfo blockMeshBuildInfos[] = {
+        {},
+        { .faceLayerIndices = {
+            .front = 2,
+            .back = 2,
+            .top = 2,
+            .bottom = 2,
+            .right = 2,
+            .left = 2
+        } },
+        { .faceLayerIndices = {
+            .front = 0,
+            .back = 0,
+            .top = 1,
+            .bottom = 2,
+            .right = 0,
+            .left = 0
+        } }
+    };
     
     ChunkRenderInfo chunkRenderInfos[4][4][4];
 
@@ -63,9 +83,7 @@ int main(int argc, char** argv) {
         uploadChunkMesh(chunkMeshVertices.size(), chunkMeshVertices.data(), &chunkRenderInfos[x][y][z]);
     }
 
-    logger.info("Initialized chunk render infos");
-
-    logger.info("Uploaded chunk meshes");
+    logger.info("Chunks ready to render");
 
     Player player(glm::vec3(1, 100, 1), glm::vec3(1, 0, 0), 70.f);
 
