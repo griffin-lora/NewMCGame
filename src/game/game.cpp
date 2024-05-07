@@ -127,7 +127,7 @@ void Game::gameLoop() {
     float lastDrawTime = 0;
 
     long fc = 0;
-    int maxChunksToDraw = 5;
+    int maxChunksToDraw = 500;
     int drawFrequency = 2;
 
     int targetFramerate = 60.f;
