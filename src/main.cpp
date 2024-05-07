@@ -12,13 +12,13 @@
 #include <vector>
 
 int main(int argc, char** argv) {
-    dotenv::init();
-
-    initWindow();
-
     Logger logger("Main", Logger::FGColors::WHITE);
 
+    dotenv::init();
+    initWindow();
     initRenderAssets();
+
+    logger.info("Finished initialization");
 
     std::unique_ptr<BlockTypeIdentArray> chunkBlockIdentArrays[4][4][4];
 
@@ -37,7 +37,13 @@ int main(int argc, char** argv) {
 
     logger.info("Populated block type ident arrays");
 
+    BlockMeshBuildInfo blockMeshBuildInfos[2] = { 0 };
+
     std::vector<ChunkMeshVertex> vertices = buildChunkMeshVertices(
+        (ChunkMeshBuildInfo) {
+            .airIdent = 0,
+            .blockMeshBuildInfos = blockMeshBuildInfos
+        },
         chunkBlockIdentArrays[0][0][0].get(),
         chunkBlockIdentArrays[1][0][0].get(),
         nullptr,
@@ -61,6 +67,8 @@ int main(int argc, char** argv) {
     logger.info("Uploaded chunk meshes");
 
     do {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
         glUseProgram(chunkShader);
         for (std::size_t x = 0; x < 4; x++) for (std::size_t y = 0; y < 4; y++) for (std::size_t z = 0; z < 4; z++) {
             glm::vec3 pos = { x * NUM_CHUNK_AXIS_BLOCKS, y * NUM_CHUNK_AXIS_BLOCKS, z * NUM_CHUNK_AXIS_BLOCKS };
