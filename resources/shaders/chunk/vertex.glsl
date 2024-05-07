@@ -18,7 +18,7 @@ layout(location = 0) in uint vertexInfo;
 out vec3 fragTexCoord;
 
 uniform mat4 viewProjection;
-uniform vec3 chunkCoord;
+uniform vec3 chunkPosition;
 
 vec3[] cubePositions = vec3[NUM_CUBE_BLOCK_VERTICES](
     // North +X
@@ -124,6 +124,6 @@ void main() {
 
     vec3 blockPosition = vec3(x, y, z);
 
-	gl_Position = viewProjection * vec4(blockPosition + vertexPosition + (chunkCoord * 16), 1.0);
+	gl_Position = viewProjection * vec4(blockPosition + vertexPosition + chunkPosition, 1.0);
 	fragTexCoord = vec3(cubeTexCoords[cubeVertexIndex], layerIndex);
 }

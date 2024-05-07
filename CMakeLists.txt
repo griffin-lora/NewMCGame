@@ -6,8 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Source file for the game && helper functions
-file(GLOB_RECURSE GAME_SRC src/game/*.cpp)
-file(GLOB_RECURSE HELPER_SRC src/glHelpers/*.cpp)
+file(GLOB_RECURSE MAIN_SRC src/*.cpp)
 
 file(GLOB XBOXJOY_SRC resources/mods/XBoxJoystick/*.cpp)
 file(GLOB WORLDINFOSIGN_SRC resources/mods/WorldInfoSign/*.cpp)
@@ -52,7 +51,7 @@ file(GLOB IMPLOT_SRC external/implot/*.cpp)
 add_executable(main src/main.cpp)
 
 # Minecraft Game library
-add_library(gameLib SHARED ${GAME_SRC} ${HELPER_SRC} ${IMGUI_SRC} ${IMGUI_IMPL_SRC} ${IMPLOT_SRC})
+add_library(gameLib SHARED ${MAIN_SRC} ${IMGUI_SRC} ${IMGUI_IMPL_SRC} ${IMPLOT_SRC})
 target_link_libraries(gameLib GL GLEW glfw m dl ssl crypto)
 
 # Link gameLib

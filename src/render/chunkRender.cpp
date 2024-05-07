@@ -1,8 +1,12 @@
 #include "chunkRender.hpp"
 
+GLuint chunkShader;
+GLuint chunkViewProjectionLocation;
+GLuint chunkPositionLocation;
+GLuint chunkBlockTextureArrayLocation;
+
 void renderChunk(glm::vec3 pos, const ChunkRenderInfo* info) {
-    // Set the position origin of the chunk we are about to draw
-    // glUniform3fv(chunkCoordID, 1, &chunkCoord[0]);
+    glUniform3fv(chunkPositionLocation, 1, &pos[0]);
 
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, info->vertexBuffer);

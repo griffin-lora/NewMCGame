@@ -8,4 +8,9 @@ struct ChunkRenderInfo {
     GLuint vertexBuffer = 0;
 };
 
+extern GLuint chunkShader;
+extern GLuint chunkViewProjectionLocation;
+extern GLuint chunkPositionLocation;
+extern GLuint chunkBlockTextureArrayLocation;
+
 void renderChunk(glm::vec3 pos, const ChunkRenderInfo* info);

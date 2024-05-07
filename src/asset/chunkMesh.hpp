@@ -5,7 +5,7 @@
 
 using ChunkMeshVertex = GLuint;
 
-std::vector<ChunkMeshVertex> generateChunkMeshVertices(
+std::vector<ChunkMeshVertex> buildChunkMeshVertices(
     const BlockTypeIdentArray* array,
     const BlockTypeIdentArray* frontArray,
     const BlockTypeIdentArray* backArray,
