@@ -63,33 +63,33 @@ std::vector<ChunkMeshVertex> buildChunkMeshVertices(
         };
         
         // +X Face Check
-        if (x >= 15) {
+        if (x >= NUM_CHUNK_AXIS_BLOCKS - 1u) {
             if (!frontArray || frontArray->idents[0u][y][z] == info.airIdent) { addFace(BlockFace::FRONT); }
         } else if (array->idents[x + 1u][y][z] == info.airIdent) { addFace(BlockFace::FRONT); }
         
         // -X Face Check
         if (x < 1) {
-            if (!backArray || backArray->idents[15u][y][z] == info.airIdent) { addFace(BlockFace::BACK); }
+            if (!backArray || backArray->idents[NUM_CHUNK_AXIS_BLOCKS - 1u][y][z] == info.airIdent) { addFace(BlockFace::BACK); }
         } else if (array->idents[x - 1u][y][z] == info.airIdent) { addFace(BlockFace::BACK); }
         
         // +Y Face Check
-        if (y >= 15) {
+        if (y >= NUM_CHUNK_AXIS_BLOCKS - 1u) {
             if (!topArray || topArray->idents[x][0u][z] == info.airIdent) { addFace(BlockFace::TOP); }
         } else if (array->idents[x][y + 1u][z] == info.airIdent) { addFace(BlockFace::TOP); }
         
         // -Y Face Check
         if (y < 1) {
-            if (!bottomArray || bottomArray->idents[x][15u][z] == info.airIdent) { addFace(BlockFace::BOTTOM); }
+            if (!bottomArray || bottomArray->idents[x][NUM_CHUNK_AXIS_BLOCKS - 1u][z] == info.airIdent) { addFace(BlockFace::BOTTOM); }
         } else if (array->idents[x][y - 1u][z] == info.airIdent) { addFace(BlockFace::BOTTOM); }
         
         // +Z Face Check
-        if (z >= 15) {
+        if (z >= NUM_CHUNK_AXIS_BLOCKS - 1u) {
             if (!rightArray || rightArray->idents[x][y][0u] == info.airIdent) { addFace(BlockFace::RIGHT); }
         } else if (array->idents[x][y][z + 1u] == info.airIdent) { addFace(BlockFace::RIGHT); }
         
         // -Z Face Check
         if (z < 1) {
-            if (!leftArray || leftArray->idents[x][y][15u] == info.airIdent) { addFace(BlockFace::LEFT); }
+            if (!leftArray || leftArray->idents[x][y][NUM_CHUNK_AXIS_BLOCKS - 1u] == info.airIdent) { addFace(BlockFace::LEFT); }
         } else if (array->idents[x][y][z - 1u] == info.airIdent) { addFace(BlockFace::LEFT); }
     }
 

@@ -38,31 +38,32 @@ int main(int argc, char** argv) {
     logger.info("Populated block type ident arrays");
 
     BlockMeshBuildInfo blockMeshBuildInfos[2] = { 0 };
-
-    std::vector<ChunkMeshVertex> vertices = buildChunkMeshVertices(
-        (ChunkMeshBuildInfo) {
-            .airIdent = 0,
-            .blockMeshBuildInfos = blockMeshBuildInfos
-        },
-        chunkBlockIdentArrays[0][0][0],
-        chunkBlockIdentArrays[1][0][0],
-        nullptr,
-        chunkBlockIdentArrays[0][1][0],
-        nullptr,
-        chunkBlockIdentArrays[0][0][1],
-        nullptr
-    );
-
-    logger.info("Built chunk mesh vertices");
     
     ChunkRenderInfo chunkRenderInfos[4][4][4];
+
+    std::vector<ChunkMeshVertex> chunkMeshVertices;
+
     for (std::size_t x = 0; x < 4; x++) for (std::size_t y = 0; y < 4; y++) for (std::size_t z = 0; z < 4; z++) {
+        chunkMeshVertices.clear();
+        chunkMeshVertices = buildChunkMeshVertices(
+            (ChunkMeshBuildInfo) {
+                .airIdent = 0,
+                .blockMeshBuildInfos = blockMeshBuildInfos
+            },
+            chunkBlockIdentArrays[x][y][z],
+            x >= 3u ? nullptr : chunkBlockIdentArrays[x + 1u][y][z],
+            x <= 0 ? nullptr : chunkBlockIdentArrays[x - 1u][y][z],
+            y >= 3u ? nullptr : chunkBlockIdentArrays[x][y + 1u][z],
+            y <= 0 ? nullptr : chunkBlockIdentArrays[x][y - 1u][z],
+            z >= 3u ? nullptr : chunkBlockIdentArrays[x][y][z + 1u],
+            z <= 0 ? nullptr : chunkBlockIdentArrays[x][y][z - 1u]
+        );
+
         initChunkRenderInfo(&chunkRenderInfos[x][y][z]);
+        uploadChunkMesh(chunkMeshVertices.size(), chunkMeshVertices.data(), &chunkRenderInfos[x][y][z]);
     }
 
     logger.info("Initialized chunk render infos");
-
-    uploadChunkMesh(vertices.size(), vertices.data(), &chunkRenderInfos[0][0][0]);
 
     logger.info("Uploaded chunk meshes");
 
