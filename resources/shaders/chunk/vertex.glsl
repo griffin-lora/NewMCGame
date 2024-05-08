@@ -10,12 +10,14 @@ uint layerIndexBitmask = GET_BITMASK(NUM_LAYER_INDEX_BITS);
 uint faceBitmask = GET_BITMASK(NUM_FACE_BITS);
 uint axisBitmask = GET_BITMASK(NUM_CHUNK_AXIS_BITS);
 
-#define NUM_CUBE_BLOCK_VERTICES 36u
+#define NUM_CUBE_BLOCK_FACES 6u
 #define NUM_CUBE_BLOCK_FACE_VERTICES 6u
+#define NUM_CUBE_BLOCK_VERTICES 36u
 
 layout(location = 0) in uint vertexInfo;
 
 out vec3 fragTexCoord;
+out float lightingFactor;
 
 uniform mat4 viewProjection;
 uniform vec3 chunkPosition;
@@ -111,6 +113,21 @@ vec2[] cubeTexCoords = vec2[NUM_CUBE_BLOCK_VERTICES](
     vec2(0.000000, 1.000000)
 );
 
+float[] lightingFactors = float[NUM_CUBE_BLOCK_FACES](
+    // +X
+    0.9,
+    // -X
+    0.8,
+    // +Y
+    1.0,
+    // -Y
+    0.7,
+    // +Z
+    0.9,
+    // -Z
+    0.8
+);
+
 void main() {
     uint layerIndex = vertexInfo & layerIndexBitmask;
     uint face = (vertexInfo >> NUM_LAYER_INDEX_BITS) & faceBitmask;
@@ -126,4 +143,5 @@ void main() {
 
 	gl_Position = viewProjection * vec4(blockPosition + vertexPosition + chunkPosition, 1.0);
 	fragTexCoord = vec3(cubeTexCoords[cubeVertexIndex], layerIndex);
+    lightingFactor = lightingFactors[face];
 }
