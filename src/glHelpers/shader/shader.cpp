@@ -11,15 +11,11 @@
 
 static Logger logger("Shader Loader", Logger::FGColors::MAGENTA);
 
-GLuint loadShaders(std::string shaderResourceFolder) {
-	auto paths = getShaderPaths(shaderResourceFolder);
+ShaderSource loadShaders(const std::string& shaderResourcePath) {
+	auto paths = getShaderPaths(shaderResourcePath);
 
 	const std::string& vertexFilePath = paths.first;
 	const std::string& fragmentFilePath = paths.second;
-
-	// Create the shaders
-	GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-	GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
 
 	// Read the Vertex Shader code from the file
 	std::string vertexShaderCode;
@@ -49,12 +45,20 @@ GLuint loadShaders(std::string shaderResourceFolder) {
 		throw std::runtime_error("Err");
 	}
 
+	return { .vertexSource = vertexShaderCode, .fragmentSource = fragmentShaderCode };
+}
+
+GLuint initShaders(const ShaderSource& source) {
+	// Create the shaders
+	GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
+	GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
+
 	GLint result = GL_FALSE;
 	int infoLogLength;
 	
 	// Compile Vertex Shader
-	logger.info("Compiling Vextex shader" + vertexFilePath);
-	char const* vertexSourcePointer = vertexShaderCode.c_str();
+	logger.info("Compiling Vextex shader");
+	char const* vertexSourcePointer = source.vertexSource.c_str();
 	glShaderSource(vertexShaderID, 1, &vertexSourcePointer , NULL);
 	glCompileShader(vertexShaderID);
 
@@ -68,8 +72,8 @@ GLuint loadShaders(std::string shaderResourceFolder) {
 	}
 
 	// Compile Fragment Shader
-	logger.info("Compiling Fragment shader " + fragmentFilePath);
-	char const* fragmentSourcePointer = fragmentShaderCode.c_str();
+	logger.info("Compiling Fragment shader ");
+	char const* fragmentSourcePointer = source.fragmentSource.c_str();
 	glShaderSource(fragmentShaderID, 1, &fragmentSourcePointer , NULL);
 	glCompileShader(fragmentShaderID);
 

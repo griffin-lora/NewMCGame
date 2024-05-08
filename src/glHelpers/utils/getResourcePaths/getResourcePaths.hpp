@@ -8,6 +8,6 @@
 namespace fs = std::filesystem;
 
 // Get the full path to the Vertex and Fragment shader
-std::pair<std::string, std::string> getShaderPaths(std::string shaderFolder);
+std::pair<std::string, std::string> getShaderPaths(std::string_view shaderFolder);
 
 std::string getTexturePath(std::string p);

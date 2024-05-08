@@ -1,7 +1,7 @@
+#include "asset/assetsLoad.hpp"
 #include "asset/chunkMesh.hpp"
-#include "assetInit/chunkInit.hpp"
-#include "assetInit/init.hpp"
-#include "assetUpload/chunkUpload.hpp"
+#include "assetGL/chunkAsset.hpp"
+#include "assetGL/assetsInit.hpp"
 #include "block.hpp"
 #include "glHelpers/utils/logger/logger.hpp"
 #include "glHelpers/utils/dotenv.h"
@@ -16,7 +16,14 @@ int main(int argc, char** argv) {
 
     dotenv::init();
     initWindow();
-    initRenderAssets();
+
+    {
+        auto info = loadRenderAssets();
+        if (!info.has_value()) {
+            return 1;
+        }
+        initRenderAssets(info.value());
+    }
 
     logger.info("Finished initialization");
 

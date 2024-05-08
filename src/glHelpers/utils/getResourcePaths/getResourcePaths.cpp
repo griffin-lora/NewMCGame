@@ -1,7 +1,7 @@
 #include "getResourcePaths.hpp"
 #include "../getEnvVar/getEnvVar.hpp"
 
-std::pair<std::string, std::string> getShaderPaths(std::string shaderFolder) {
+std::pair<std::string, std::string> getShaderPaths(std::string_view shaderFolder) {
     // Get base path
     auto bp = fs::current_path();
 
