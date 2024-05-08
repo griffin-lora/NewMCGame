@@ -9,6 +9,7 @@
 #include "render/chunkRender.hpp"
 #include "window.hpp"
 #include <cstddef>
+#include <memory>
 #include <vector>
 
 int main(int argc, char** argv) {
@@ -27,11 +28,11 @@ int main(int argc, char** argv) {
 
     logger.info("Finished initialization");
 
-    BlockTypeIdentArray* chunkBlockIdentArrays[4][4][4];
+    std::unique_ptr<BlockTypeIdentArray> chunkBlockIdentArrays[4][4][4];
 
     for (std::size_t cx = 0; cx < 4; cx++) for (std::size_t cy = 0; cy < 4; cy++) for (std::size_t cz = 0; cz < 4; cz++) {
-        chunkBlockIdentArrays[cx][cy][cz] = new BlockTypeIdentArray;
-        BlockTypeIdentArray* array = chunkBlockIdentArrays[cx][cy][cz];
+        chunkBlockIdentArrays[cx][cy][cz] = std::make_unique<BlockTypeIdentArray>();
+        BlockTypeIdentArray* array = chunkBlockIdentArrays[cx][cy][cz].get();
 
         for (std::size_t x = 0; x < NUM_CHUNK_AXIS_BLOCKS; x++) for (std::size_t y = 0; y < NUM_CHUNK_AXIS_BLOCKS; y++) for (std::size_t z = 0; z < NUM_CHUNK_AXIS_BLOCKS; z++) {
             if (y == 5) {
@@ -75,13 +76,13 @@ int main(int argc, char** argv) {
                 .airIdent = 0,
                 .blockMeshBuildInfos = blockMeshBuildInfos
             },
-            chunkBlockIdentArrays[x][y][z],
-            x >= 3u ? nullptr : chunkBlockIdentArrays[x + 1u][y][z],
-            x <= 0 ? nullptr : chunkBlockIdentArrays[x - 1u][y][z],
-            y >= 3u ? nullptr : chunkBlockIdentArrays[x][y + 1u][z],
-            y <= 0 ? nullptr : chunkBlockIdentArrays[x][y - 1u][z],
-            z >= 3u ? nullptr : chunkBlockIdentArrays[x][y][z + 1u],
-            z <= 0 ? nullptr : chunkBlockIdentArrays[x][y][z - 1u]
+            chunkBlockIdentArrays[x][y][z].get(),
+            x >= 3u ? nullptr : chunkBlockIdentArrays[x + 1u][y][z].get(),
+            x <= 0 ? nullptr : chunkBlockIdentArrays[x - 1u][y][z].get(),
+            y >= 3u ? nullptr : chunkBlockIdentArrays[x][y + 1u][z].get(),
+            y <= 0 ? nullptr : chunkBlockIdentArrays[x][y - 1u][z].get(),
+            z >= 3u ? nullptr : chunkBlockIdentArrays[x][y][z + 1u].get(),
+            z <= 0 ? nullptr : chunkBlockIdentArrays[x][y][z - 1u].get()
         );
 
         initChunkRenderInfo(&chunkRenderInfos[x][y][z]);
@@ -107,10 +108,6 @@ int main(int argc, char** argv) {
 
         renderWindow();
     } while (isWindowActive());
-
-    for (std::size_t x = 0; x < 4; x++) for (std::size_t y = 0; y < 4; y++) for (std::size_t z = 0; z < 4; z++) {
-        delete chunkBlockIdentArrays[x][y][z];
-    }
 
     return 0;
 }
