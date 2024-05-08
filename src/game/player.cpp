@@ -1,6 +1,7 @@
 #include "player.hpp"
 
 #include <cstdio>
+#include <glm/geometric.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "window.hpp"
@@ -66,11 +67,11 @@ void Player::updatePlayer(float deltaTime) {
     }
     // Left
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        position += glm::vec3(looking.z, 0, -looking.x) * moveSpeed * deltaTime;
+        position += glm::normalize(glm::vec3(looking.z, 0, -looking.x)) * moveSpeed * deltaTime;
     }
     // Right
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        position -= glm::vec3(looking.z, 0, -looking.x) * moveSpeed * deltaTime;
+        position -= glm::normalize(glm::vec3(looking.z, 0, -looking.x)) * moveSpeed * deltaTime;
     }
     // Up
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
